@@ -8,18 +8,6 @@ var server = http.createServer(function(request, response) {
   var path = url.parse(request.url).pathname;
 	clientID = 'a'+Math.random();
   switch (path) {
-    case '/socket.html':
-      fs.readFile(__dirname + path, function(error, data) {
-        if (error){
-          response.writeHead(404);
-          response.write("opps this doesn't exist - 404");
-        } else {
-          response.writeHead(200, {"Content-Type": "text/html"});
-          response.write(data, "utf8");
-        }
-        response.end();
-      });
-      break;
     default:
       response.writeHead(404);
       response.write("opps this doesn't exist - 404");
@@ -33,6 +21,7 @@ var serv_io = io.listen(server);
 var socketUser = {};
 var room = {};
 serv_io.sockets.on('connection', function(socket) {
+  console.log(socket.id);
 	//通知連線成功
 	//serv_io.sockets.emit('conn', { 'systemID': socket.id}); -->全部的人都會發送
     socket.emit('conn', { 
