@@ -54,6 +54,7 @@ serv_io.sockets.on('connection', function(socket) {
     var userID = data.userID;
     var sysCode = data.sysCode;
     var msg = data.msg;
+    // console.log(data);
     try{
       // 屬於這使用者的全推
       if(socketUser[sysCode][userID]["socket"] != undefined){
@@ -66,7 +67,7 @@ serv_io.sockets.on('connection', function(socket) {
         
       }
     }catch(err) {
-      console.log(err);
+      console.log("can not send Msg, userID:"+userID+", sysCode:"+sysCode+",msg:"+msg);
     }
   });
 
