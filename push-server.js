@@ -39,7 +39,12 @@ serv_io.sockets.on('connection', function(socket) {
       // 使用者資訊
       socketUser[sysCode][userID]["socket"] = {};
     }
-    socketUser[sysCode][userID]["socket"][socket.id] = socket;
+    try{
+      socketUser[sysCode][userID]["socket"][socket.id] = socket;
+    }catch(err){
+      console.log("< onlineSystem Error > \n sysCode:"+sysCode+", userID:"+userID);
+    }
+    
     // 暫存使用者資訊-位置
     sysList[socket.id] = {
       "userID": userID,
@@ -55,20 +60,30 @@ serv_io.sockets.on('connection', function(socket) {
     var sysCode = data.sysCode;
     var msg = data.msg;
     // console.log(data);
-    try{
-      // 屬於這使用者的全推
-      if(socketUser[sysCode][userID]["socket"] != undefined){
-          var sendData = {
-            msg: msg
-          };
-          for(var index in socketUser[sysCode][userID]["socket"]){
-            socketUser[sysCode][userID]["socket"][index].emit("sysPushSpecified",sendData);
+    if(socketUser[sysCode] != undefined){
+      if(socketUser[sysCode][userID] != undefined){
+        try{
+          // 屬於這使用者的全推
+          if(socketUser[sysCode][userID]["socket"] != undefined){
+              var sendData = {
+                msg: msg
+              };
+              for(var index in socketUser[sysCode][userID]["socket"]){
+                socketUser[sysCode][userID]["socket"][index].emit("sysPushSpecified",sendData);
+              }
+            
           }
-        
+        }catch(err) {
+          console.log("can not send Msg, userID:"+userID+", sysCode:"+sysCode);
+        }
       }
-    }catch(err) {
-      console.log("can not send Msg, userID:"+userID+", sysCode:"+sysCode+",msg:"+msg);
+      // else{
+      //   console.log("userID is not connection:"+userID);
+      // }
     }
+    // else{
+    //   console.log("sysCode is not connection:"+sysCode);
+    // }
   });
 
 
