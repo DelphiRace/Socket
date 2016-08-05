@@ -1,20 +1,14 @@
 var http = require("http");
 var url = require('url');
+var express = require( 'express' );
 var fs = require('fs');
 var io = require('socket.io'); // 加入 Socket.IO
+var app = express();
+
 var clientID = '';
 var msgBox = [];
-var server = http.createServer(function(request, response) {
-  var path = url.parse(request.url).pathname;
-	clientID = 'a'+Math.random();
-  switch (path) {
-    default:
-      response.writeHead(404);
-      response.write("opps this doesn't exist - 404");
-      response.end();
-      break;
-  }
-});
+var server = http.createServer( app );
+
 server.listen(7077);
 
 var serv_io = io.listen(server);
@@ -26,6 +20,8 @@ serv_io.sockets.on('connection', function(socket) {
     var sysCode = data.sysCode;
     var userID = data.userID;
     var uuid = data.uuid;
+    var date = new Date();
+    var dateString = date.getFullYear() + "-" + (date.getMonth()+1) + "-" + date.getDate() + " "+date.getHours()+":"+date.getMinutes();
     // var uuid = data.userID;
 
     if(socketUser[sysCode] == undefined){
@@ -38,11 +34,20 @@ serv_io.sockets.on('connection', function(socket) {
       };
       // 使用者資訊
       socketUser[sysCode][userID]["socket"] = {};
+    }else if(socketUser[sysCode][userID] == undefined){
+      socketUser[sysCode][userID] = {
+        'userID':userID,
+        'uuid':uuid,
+        'sysCode':sysCode,
+        'socket': {}
+      };
     }
     try{
       socketUser[sysCode][userID]["socket"][socket.id] = socket;
+      console.log("< onlineSystem connection > \n sysCode:"+sysCode+", userID:"+userID+ ", type:" + typeof(socketUser[sysCode][userID]["socket"][socket.id]) +", Date:"+dateString);
+
     }catch(err){
-      console.log("< onlineSystem Error > \n sysCode:"+sysCode+", userID:"+userID);
+      console.log("< onlineSystem Error > \n sysCode:"+sysCode+", userID:"+userID+", Date:"+dateString);
     }
     
     // 暫存使用者資訊-位置
@@ -55,48 +60,34 @@ serv_io.sockets.on('connection', function(socket) {
   // system推送訊息(API呼叫使用, 指定對象)
   socket.on('sysPushSpecified', function (data) {
     // 轉json字串
-    var data = JSON.parse(data);
+    // var data = JSON.parse(data);
     var userID = data.userID;
     var sysCode = data.sysCode;
     var msg = data.msg;
+    var date = new Date();
+    var dateString = date.getFullYear() + "-" + (date.getMonth()+1) + "-" + date.getDate() + " "+date.getHours()+":"+date.getMinutes();
     // console.log(data);
-    if(socketUser[sysCode] != undefined){
-      if(socketUser[sysCode][userID] != undefined){
-        try{
-          // 屬於這使用者的全推
-          if(socketUser[sysCode][userID]["socket"] != undefined){
-              var sendData = {
-                msg: msg
-              };
-              for(var index in socketUser[sysCode][userID]["socket"]){
-                socketUser[sysCode][userID]["socket"][index].emit("sysPushSpecified",sendData);
-              }
-            
+    
+      
+    try{
+      // 屬於這使用者的全推
+      if(socketUser[sysCode][userID]["socket"] != undefined){
+          var sendData = {
+            msg: msg
+          };
+          for(var index in socketUser[sysCode][userID]["socket"]){
+            socketUser[sysCode][userID]["socket"][index].emit("sysPushSpecified",sendData);
           }
-        }catch(err) {
-          console.log("can not send Msg, userID:"+userID+", sysCode:"+sysCode);
-        }
+          console.log("<Send Msg> \n userID:"+userID+", sysCode:"+sysCode+" Date:"+dateString);
+          
+      }else{
+        console.log("<can not send Msg> \n userID:"+userID+", sysCode:"+sysCode+" Date:"+dateString);
       }
-      // else{
-      //   console.log("userID is not connection:"+userID);
-      // }
+    }catch(err) {
+      console.log("<can not send Msg> \n userID:"+userID+", sysCode:"+sysCode+" Date:"+dateString);
     }
-    // else{
-    //   console.log("sysCode is not connection:"+sysCode);
-    // }
+      
   });
-
-
-	// socket.on('login', function (data,fn) {
-	// 	socketUser[socket.id] = {'systemID':socket.id,'uid':data.uid,'userName':data.userName,'socket':socket};
- //    });
-	// //socketUser[socket.id] = {'socket':socket};
-	// socket.on('chatMsg', function (data,fn) {
-	// 	//推送數據
-	// 	for(var values in socketUser){
-	// 	  socketUser[values].socket.emit('chatMsg',{'systemID':socket.id,'uid':data.uid,'userName':data.name,'msg':data.msg});
-	// 	}
-	// });
 
 	//連線關閉, 釋放
 	socket.on('disconnect', function(){
