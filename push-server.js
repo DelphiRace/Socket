@@ -26,28 +26,19 @@ serv_io.sockets.on('connection', function(socket) {
 
     if(socketUser[sysCode] == undefined){
       socketUser[sysCode] = {};
-
-      socketUser[sysCode][userID] = {
-        'userID':userID,
-        'uuid':uuid,
-        'sysCode':sysCode,
-      };
-      // 使用者資訊
-      socketUser[sysCode][userID]["socket"] = {};
-    }else if(socketUser[sysCode][userID] == undefined){
-      socketUser[sysCode][userID] = {
-        'userID':userID,
-        'uuid':uuid,
-        'sysCode':sysCode,
-        'socket': {}
-      };
+    }
+    if(socketUser[sysCode][userID] == undefined){
+      socketUser[sysCode][userID] = {};
     }
     try{
-      socketUser[sysCode][userID]["socket"][socket.id] = socket;
-      console.log("< onlineSystem connection > \n sysCode:"+sysCode+", userID:"+userID+ ", type:" + typeof(socketUser[sysCode][userID]["socket"][socket.id]) +", Date:"+dateString);
-
+      socketUser[sysCode][userID][socket.id] = true;
+      console.log("< onlineSystem connection >");
+      console.log("sysCode:"+sysCode+", userID:"+userID+ ", Date:"+dateString);
+      console.log("---------------End---------------");
     }catch(err){
-      console.log("< onlineSystem Error > \n sysCode:"+sysCode+", userID:"+userID+", Date:"+dateString);
+      console.log("< onlineSystem Error >");
+      console.log("sysCode:"+sysCode+", userID:"+userID+", Date:"+dateString);
+      console.log("---------------End---------------");
     }
     
     // 暫存使用者資訊-位置
@@ -68,23 +59,29 @@ serv_io.sockets.on('connection', function(socket) {
     var dateString = date.getFullYear() + "-" + (date.getMonth()+1) + "-" + date.getDate() + " "+date.getHours()+":"+date.getMinutes();
     // console.log(data);
     
-      
     try{
       // 屬於這使用者的全推
-      if(socketUser[sysCode][userID]["socket"] != undefined){
-          var sendData = {
-            msg: msg
-          };
-          for(var index in socketUser[sysCode][userID]["socket"]){
-            socketUser[sysCode][userID]["socket"][index].emit("sysPushSpecified",sendData);
+      if(socketUser[sysCode][userID] != undefined){
+        var sendData = {
+          msg: msg
+        };
+        for(var index in socketUser[sysCode][userID]){
+          if(serv_io.sockets.connected[index]){
+            serv_io.sockets.connected[index].emit("sysPushSpecified", sendData);
           }
-          console.log("<Send Msg> \n userID:"+userID+", sysCode:"+sysCode+" Date:"+dateString);
-          
+        }
+
+        console.log("<Send Msg>");
+        console.log("userID:"+userID+", sysCode:"+sysCode+" Date:"+dateString);
+        console.log("---------------End---------------");
       }else{
-        console.log("<can not send Msg> \n userID:"+userID+", sysCode:"+sysCode+" Date:"+dateString);
+        console.log("<can not send Msg>");
+        console.log("userID:"+userID+", sysCode:"+sysCode+" Date:"+dateString);
+        console.log("---------------End---------------");
       }
     }catch(err) {
       console.log("<can not send Msg> \n userID:"+userID+", sysCode:"+sysCode+" Date:"+dateString);
+      console.log("---------------End---------------");
     }
       
   });
@@ -94,7 +91,7 @@ serv_io.sockets.on('connection', function(socket) {
     try{
       var userID = sysList[socket.id]["userID"];
       var sysCode = sysList[socket.id]["sysCode"];
-      delete socketUser[sysCode][userID]["socket"][socket.id];
+      delete socketUser[sysCode][userID][socket.id];
       delete sysList[socket.id];
     }catch(err) {
 
