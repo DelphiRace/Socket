@@ -55,6 +55,10 @@ serv_io.sockets.on('connection', function(socket) {
     var userID = data.userID;
     var sysCode = data.sysCode;
     var msg = data.msg;
+    var link = null;
+    if(data.link != undefined){
+      link = data.link;
+    }
     var date = new Date();
     var dateString = date.getFullYear() + "-" + (date.getMonth()+1) + "-" + date.getDate() + " "+date.getHours()+":"+date.getMinutes();
     // console.log(data);
@@ -63,7 +67,8 @@ serv_io.sockets.on('connection', function(socket) {
       // 屬於這使用者的全推
       if(socketUser[sysCode][userID] != undefined){
         var sendData = {
-          msg: msg
+          msg: msg,
+          link: link
         };
         for(var index in socketUser[sysCode][userID]){
           if(serv_io.sockets.connected[index]){
