@@ -91,6 +91,108 @@ serv_io.sockets.on('connection', function(socket) {
       
   });
 
+  // 推播整個系統的使用者
+  socket.on('sysPushUser', function (data) {
+    // 轉json字串
+    // var data = JSON.parse(data);
+    if(data.userID != undefined){
+      var userID = data.userID;
+    }
+    var sysCode = data.sysCode;
+    var msg = data.msg;
+    var sendUserInfo = data.sendUserInfo;
+    var itemID = data.itemID;
+    
+
+    var link = null;
+    if(data.link != undefined){
+      link = data.link;
+    }
+    var onlySys = Number(data.onlySys);
+    var date = new Date();
+    var dateString = date.getFullYear() + "-" + (date.getMonth()+1) + "-" + date.getDate() + " "+date.getHours()+":"+date.getMinutes();
+    // console.log(data);
+    var sendData = {
+      msg: msg,
+      link: link,
+      sendUserInfo: sendUserInfo,
+      itemID: itemID
+    };
+    
+    try{
+      // 針對該系統全部
+      if(onlySys){
+        // 只有一個系統
+        if(sysCode.search(",") != -1){
+          for( var userIDkey in socketUser[ sysCode ]){
+            for(var index in socketUser[ sysCode ][userIDkey]){
+              if(serv_io.sockets.connected[index]){
+                serv_io.sockets.connected[index].emit("sysPushUser", sendData);
+              }
+            }
+          }
+        }else{ //
+          var sysCodeArr = sysCode.split(",");
+          for(var i = 0; i < sysCodeArr.length; i++){
+            for( var userIDkey in socketUser[ sysCodeArr[i] ]){
+              for(var index in socketUser[ sysCodeArr[i] ][userIDkey]){
+                if(serv_io.sockets.connected[index]){
+                  serv_io.sockets.connected[index].emit("sysPushUser", sendData);
+                }
+              }
+            }
+          }
+
+        }
+
+      }else{
+        // 代表只有一個
+        if(userID.search(",") != -1){
+          if(socketUser[sysCode][ userID ] != undefined){
+            
+            for(var index in socketUser[sysCode][userID]){
+              if(serv_io.sockets.connected[index]){
+                serv_io.sockets.connected[index].emit("sysPushUser", sendData);
+              }
+            }
+
+            console.log("<Send Msg>");
+            console.log("userID:"+userID+", sysCode:"+sysCode+" Date:"+dateString);
+            console.log("---------------End---------------");
+          }else{
+            console.log("<can not send Msg>");
+            console.log("userID:"+userID+", sysCode:"+sysCode+" Date:"+dateString);
+            console.log("---------------End---------------");
+          }
+        }else{
+          var userIDArr = userID.split(",");
+          for(var i = 0; i < userIDArr.length; i++){
+            // 屬於這使用者的全推
+            if(socketUser[sysCode][ userIDArr[i] ] != undefined){
+              for(var index in socketUser[sysCode][ userIDArr[i] ]){
+                if(serv_io.sockets.connected[index]){
+                  serv_io.sockets.connected[index].emit("sysPushUser", sendData);
+                }
+              }
+
+              console.log("<Send Msg>");
+              console.log("userID:"+userID+", sysCode:"+sysCode+" Date:"+dateString);
+              console.log("---------------End---------------");
+            }else{
+              console.log("<can not send Msg>");
+              console.log("userID:"+userID+", sysCode:"+sysCode+" Date:"+dateString);
+              console.log("---------------End---------------");
+            }
+          }
+        }
+      }
+    }catch(err) {
+      console.log("<can not send Msg> \n userID:"+userID+", sysCode:"+sysCode+" Date:"+dateString);
+      console.log("---------------End---------------");
+    }
+      
+  });
+
 	//連線關閉, 釋放
 	socket.on('disconnect', function(){
     try{
