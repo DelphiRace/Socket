@@ -104,6 +104,7 @@ serv_io.sockets.on('connection', function(socket) {
     var itemID = data.itemID;
     var notice_type = data.notice_type;
     var noticeTypeName = data.noticeTypeName;
+    var noticeCreateDate = data.noticeCreateDate;
     
 
     var link = null;
@@ -120,7 +121,8 @@ serv_io.sockets.on('connection', function(socket) {
       sendUserInfo: sendUserInfo,
       itemID: itemID,
       notice_type: notice_type,
-      noticeTypeName: noticeTypeName
+      noticeTypeName: noticeTypeName,
+      noticeCreateDate: noticeCreateDate
     };
     
     try{
