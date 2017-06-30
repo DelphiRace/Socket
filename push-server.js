@@ -102,6 +102,8 @@ serv_io.sockets.on('connection', function(socket) {
     var msg = data.msg;
     var sendUserInfo = data.sendUserInfo;
     var itemID = data.itemID;
+    var notice_type = data.notice_type;
+    var noticeTypeName = data.noticeTypeName;
     
 
     var link = null;
@@ -116,7 +118,9 @@ serv_io.sockets.on('connection', function(socket) {
       msg: msg,
       link: link,
       sendUserInfo: sendUserInfo,
-      itemID: itemID
+      itemID: itemID,
+      notice_type: notice_type,
+      noticeTypeName: noticeTypeName
     };
     
     try{
